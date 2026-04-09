@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ata Mutfak - Akıllı Sipariş</title>
+    <title>Ata Mutfak - Sipariş Paneli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
-        :root { --p-color: #d35400; --s-color: #273c75; --bg-color: #f1f2f6; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #333; }
+        :root { --p-color: #d35400; --bg-color: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; }
         .container { max-width: 600px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: auto; }
         .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 25px; padding-bottom: 10px; }
-        .person-card { background: #fff; border: 2px solid #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .person-card { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 15px; margin-bottom: 20px; position: relative; }
         .person-number { position: absolute; top: -12px; left: 15px; background: var(--p-color); color: white; padding: 3px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: #555; }
-        input[type="text"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .btn { width: 100%; background: #25D366; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        .btn:hover { background: #1eb954; transform: translateY(-2px); }
-        .kvkk { font-size: 12px; color: #7f8c8d; margin-top: 15px; display: flex; align-items: flex-start; gap: 8px; }
-        #loading { text-align: center; padding: 20px; color: var(--p-color); font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { width: 100%; background: #25D366; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .kvkk { font-size: 12px; color: #7f8c8d; margin-top: 15px; display: flex; gap: 8px; }
+        #loading { text-align: center; padding: 20px; color: var(--p-color); }
     </style>
 </head>
 <body>
@@ -27,28 +26,28 @@
 <div class="container">
     <div class="header">
         <h2 style="margin:0; color:var(--p-color);">ATA MUTFAK</h2>
-        <p style="margin:5px 0; font-weight:bold;">Günlük Sipariş Formu</p>
+        <p style="margin:5px 0;">Günlük Tabldot Sipariş</p>
     </div>
 
-    <div id="loading">Menü yükleniyor, lütfen bekleyin...</div>
+    <div id="loading">Menü E-Tablo'dan yükleniyor...</div>
 
     <form id="mainForm" style="display:none;">
         <div class="input-group">
             <label>Ad Soyad *</label>
-            <input type="text" id="custName" required placeholder="İsminizi giriniz">
+            <input type="text" id="custName" required placeholder="İsminiz">
         </div>
         <div class="input-group">
             <label>Teslimat Adresi *</label>
-            <textarea id="custAddress" rows="2" required placeholder="Mahalle, sokak, no, daire..."></textarea>
+            <textarea id="custAddress" rows="2" required placeholder="Adresiniz"></textarea>
         </div>
         <div class="input-group">
-            <label>Toplam Kaç Kişilik Menü? *</label>
+            <label>Kaç Kişilik Menü? *</label>
             <select id="personCount" onchange="generateForms()">
-                <option value="1">1 Kişilik (200 TL)</option>
-                <option value="2">2 Kişilik (400 TL)</option>
-                <option value="3">3 Kişilik (600 TL)</option>
-                <option value="4">4 Kişilik (800 TL)</option>
-                <option value="5">5 Kişilik (1000 TL)</option>
+                <option value="1">1 Kişilik</option>
+                <option value="2">2 Kişilik</option>
+                <option value="3">3 Kişilik</option>
+                <option value="4">4 Kişilik</option>
+                <option value="5">5 Kişilik</option>
             </select>
         </div>
 
@@ -56,14 +55,15 @@
 
         <div class="kvkk">
             <input type="checkbox" required>
-            <span>Verilerimin sipariş yönetimi için işlenmesini ve tarafımla WhatsApp üzerinden iletişim kurulmasını kabul ediyorum.</span>
+            <span>KVKK kapsamında verilerimin işlenmesini kabul ediyorum.</span>
         </div>
 
-        <button type="button" class="btn" onclick="sendOrder()">WHATSAPP İLE SİPARİŞİ GÖNDER</button>
+        <button type="button" class="btn" onclick="sendOrder()">SİPARİŞİ WHATSAPP'A GÖNDER</button>
     </form>
 </div>
 
 <script>
+    // Sizin Tablo ID'niz
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWyCSZq1kTB2rPcUy_NF_o'; 
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
@@ -73,21 +73,30 @@
         try {
             const response = await fetch(SHEET_URL);
             const data = await response.text();
-            const rows = data.split('\n').slice(1);
+            
+            // CSV verisini satırlara böl
+            const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
+            
+            // 2. satırdan itibaren (başlık hariç) verileri çek
+            rows.slice(1).forEach(row => {
+                const cols = row.split(/[,;](?=(?:(?:[^"]*"){2})*[^"]*$)/)
+                                .map(c => c.replace(/^"|"$/g, '').trim());
 
-            rows.forEach(row => {
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
                 if (cols[0]) menuData.corbalar.push(cols[0]);
                 if (cols[1]) menuData.anaYemekler.push(cols[1]);
                 if (cols[2]) menuData.yanlar.push(cols[2]);
                 if (cols[3]) menuData.icecekler.push(cols[3]);
             });
 
-            $("#loading").hide();
-            $("#mainForm").show();
-            generateForms();
-        } catch (error) {
-            $("#loading").text("Hata: Menü alınamadı. Lütfen internetinizi kontrol edin.");
+            if(menuData.corbalar.length > 0) {
+                $("#loading").hide();
+                $("#mainForm").show();
+                generateForms();
+            } else {
+                $("#loading").text("Tablo boş veya 'Web'de Yayınla' yapılmamış!");
+            }
+        } catch (e) {
+            $("#loading").text("Hata: Tabloya erişilemedi.");
         }
     }
 
@@ -99,24 +108,12 @@
         for (let i = 1; i <= count; i++) {
             container.append(`
                 <div class="person-card">
-                    <span class="person-number">${i}. Kişinin Seçimleri</span>
+                    <span class="person-number">${i}. Kişi</span>
                     <div class="menu-grid">
-                        <div class="input-group">
-                            <label>Çorba</label>
-                            <select class="p-corba">${menuData.corbalar.map(x => `<option>${x}</option>`).join('')}</select>
-                        </div>
-                        <div class="input-group">
-                            <label>Ana Yemek</label>
-                            <select class="p-ana">${menuData.anaYemekler.map(x => `<option>${x}</option>`).join('')}</select>
-                        </div>
-                        <div class="input-group">
-                            <label>Yan Lezzet</label>
-                            <select class="p-yan">${menuData.yanlar.map(x => `<option>${x}</option>`).join('')}</select>
-                        </div>
-                        <div class="input-group">
-                            <label>İçecek/Ek</label>
-                            <select class="p-ek">${menuData.icecekler.map(x => `<option>${x}</option>`).join('')}</select>
-                        </div>
+                        <div class="input-group"><label>Çorba</label><select class="p-corba">${menuData.corbalar.map(x => `<option>${x}</option>`).join('')}</select></div>
+                        <div class="input-group"><label>Ana Yemek</label><select class="p-ana">${menuData.anaYemekler.map(x => `<option>${x}</option>`).join('')}</select></div>
+                        <div class="input-group"><label>Yan Lezzet</label><select class="p-yan">${menuData.yanlar.map(x => `<option>${x}</option>`).join('')}</select></div>
+                        <div class="input-group"><label>İçecek</label><select class="p-ek">${menuData.icecekler.map(x => `<option>${x}</option>`).join('')}</select></div>
                     </div>
                 </div>
             `);
@@ -125,28 +122,19 @@
 
     function sendOrder() {
         if(!document.getElementById('mainForm').checkValidity()) {
-            alert("Lütfen tüm alanları doldurun ve onay kutusunu işaretleyin."); return;
+            alert("Lütfen eksikleri doldurun."); return;
         }
-
-        const kisiSayisi = $("#personCount").val();
-        let mesaj = `*YENİ SİPARİŞ (Ata Mutfak)*\n`;
-        mesaj += `--------------------------\n`;
-        mesaj += `👤 *Müşteri:* ${$("#custName").val()}\n`;
-        mesaj += `📍 *Adres:* ${$("#custAddress").val()}\n`;
-        mesaj += `👥 *Kişi:* ${kisiSayisi} | 💰 *Tutar:* ${kisiSayisi * 200} TL\n`;
-        mesaj += `--------------------------\n`;
-
+        const count = $("#personCount").val();
+        let msg = `*YENİ SİPARİŞ (Ata Mutfak)*\n👤 *Müşteri:* ${$("#custName").val()}\n📍 *Adres:* ${$("#custAddress").val()}\n👥 *Kişi:* ${count} | *Tutar:* ${count*200}TL\n----------\n`;
+        
         $(".person-card").each(function(i) {
-            mesaj += `*${i+1}. Kişi Seçimi:*\n`;
-            mesaj += `- ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n\n`;
+            msg += `*${i+1}. Kişi:* ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
         });
 
-        const telefon = "905077476114";
-        window.location.href = "https://wa.me/" + telefon + "?text=" + encodeURIComponent(mesaj.trim());
+        window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);
     }
 
     $(document).ready(() => getMenu());
 </script>
-
 </body>
 </html>

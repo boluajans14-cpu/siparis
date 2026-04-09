@@ -15,6 +15,20 @@
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
         .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; }
         #loading { text-align: center; color: var(--p-color); padding: 40px; font-weight: bold; }
+
+        .kvkk {
+            font-size: 12px;
+            color: #666;
+            margin-top: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .kvkk input {
+            margin-top: 3px;
+            width: auto;
+        }
     </style>
 </head>
 <body>
@@ -43,6 +57,11 @@
 
         <div id="dynamicPersons"></div>
 
+        <label class="kvkk">
+            <input type="checkbox" id="kvkkCheck">
+            <span>Kişisel verilerimin sipariş sürecinde kullanılmasını kabul ediyorum.</span>
+        </label>
+
         <button type="button" class="btn" onclick="sendOrder()">SİPARİŞİ GÖNDER</button>
     </form>
 </div>
@@ -51,6 +70,7 @@
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWYcSZq1kTB2rPcUy_NF_o';
     const GID = '0';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    const PRICE_PER_PERSON = 200;
 
     let menu = { corba: [], ana: [], yan: [], ek: [] };
 
@@ -59,10 +79,7 @@
             const resp = await fetch(URL, { cache: "no-store" });
             const text = await resp.text();
 
-            console.log("Ham CSV:", text);
-
             const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
-            console.log("Satırlar:", rows);
 
             rows.forEach((row, index) => {
                 if (index === 0) return;
@@ -80,19 +97,16 @@
             menu.yan   = [...new Set(menu.yan)];
             menu.ek    = [...new Set(menu.ek)];
 
-            console.log("Ayrıştırılmış Menü:", menu);
-
             if (menu.corba.length > 0 || menu.ana.length > 0 || menu.yan.length > 0 || menu.ek.length > 0) {
                 $("#loading").hide();
                 $("#mainForm").show();
                 generateForms();
             } else {
-                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Lütfen doğru sekmenin gid değerini ve A-B-C-D sütunlarında veri olduğunu kontrol edin.</span>");
+                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Tabloyu kontrol edin.</span>");
             }
 
         } catch (err) {
-            console.error("Bağlantı hatası:", err);
-            $("#loading").html("<span style='color:red;'>Bağlantı Hatası! Sheet ID, gid veya paylaşım ayarını kontrol edin.</span>");
+            $("#loading").html("<span style='color:red;'>Bağlantı hatası.</span>");
         }
     }
 
@@ -106,26 +120,46 @@
                 <div class="person-card">
                     <strong style="color:var(--p-color)">${i}. Kişi</strong>
                     <label>Çorba</label>
-                    <select class="p-corba">${menu.corba.length ? menu.corba.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
+                    <select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select>
                     <label>Ana Yemek</label>
-                    <select class="p-ana">${menu.ana.length ? menu.ana.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
+                    <select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select>
                     <label>Yan Lezzet</label>
-                    <select class="p-yan">${menu.yan.length ? menu.yan.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
+                    <select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select>
                     <label>İçecek</label>
-                    <select class="p-ek">${menu.ek.length ? menu.ek.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
+                    <select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select>
                 </div>
             `);
         }
     }
 
     function sendOrder() {
-        const name = $("#custName").val();
-        const addr = $("#custAddress").val();
-        if(!name || !addr) return alert("Lütfen isim ve adres yazın.");
+        const name = $("#custName").val().trim();
+        const addr = $("#custAddress").val().trim();
+        const kvkk = $("#kvkkCheck").is(":checked");
+        const personCount = parseInt($("#personCount").val(), 10);
+        const totalPrice = personCount * PRICE_PER_PERSON;
 
-        let msg = `*YENİ SİPARİŞ*\n👤 *Müşteri:* ${name}\n📍 *Adres:* ${addr}\n----------\n`;
+        if (!name || !addr) {
+            alert("Lütfen isim ve adres giriniz.");
+            return;
+        }
+
+        if (!kvkk) {
+            alert("Lütfen KVKK onayını kabul ediniz.");
+            return;
+        }
+
+        const now = new Date();
+        const dateText = now.toLocaleDateString("tr-TR");
+        const timeText = now.toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+        let msg = `${name}\n${addr}\n\nTarih: ${dateText}\nSaat: ${timeText}\nToplam Tutar: ${totalPrice} TL\n\n`;
+
         $(".person-card").each(function(i) {
-            msg += `*${i+1}. Kişi:* ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
+            msg += `${i + 1}. Kişi: ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
         });
 
         window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);

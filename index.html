@@ -111,16 +111,14 @@
         }
 
         .menu-grid,
-        .extra-grid {
+        .extra-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
         .extra-grid-3 {
-            display: grid;
             grid-template-columns: 1.2fr 1.5fr 0.7fr;
-            gap: 12px;
             align-items: end;
         }
 
@@ -201,6 +199,7 @@
             cursor: pointer;
             font-size: 13px;
             width: 100%;
+            margin-top: 10px;
         }
 
         .price-badge {
@@ -224,7 +223,6 @@
         @media (max-width: 640px) {
             .container { padding: 18px; }
             .menu-grid,
-            .extra-grid,
             .extra-grid-3 {
                 grid-template-columns: 1fr;
             }
@@ -262,7 +260,7 @@
 
         <div class="section-title">Ekstra Tekli Ürünler</div>
         <div class="note-box">
-            Tabldot siparişe ek olarak istenirse kategori, ürün ve adet seçilerek ekstra sipariş verilebilir.
+            Tabldot siparişe ek olarak kategori, ürün ve adet seçilerek ekstra sipariş verilebilir.
         </div>
 
         <div id="extraRows"></div>
@@ -301,113 +299,130 @@
 
 <script>
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWYcSZq1kTB2rPcUy_NF_o';
-    const GID = '0';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+
+    // BURAYI KONTROL ET
+    const GID_TABLDOT = '0'; 
+    const GID_EXTRA = '1399942607';
+
+    const TABLDOT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_TABLDOT}`;
+    const EXTRA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_EXTRA}`;
+
     const TABLDOT_PRICE_PER_PERSON = 200;
     const WHATSAPP_NUMBER = '905077476114';
 
-    let menu = { corba: [], ana: [], yan: [], ek: [] };
-
-    // Buradaki listeleri kendi güncel ürünlerinle istediğin zaman değiştirebilirsin
-    const EXTRA_PRODUCT_OPTIONS = {
-        "Çorbalar": [],
-        "Tavuk Yemekleri": [
-            "Tavuk Sote",
-            "Tavuk Kavurma",
-            "Tavuk Haşlama",
-            "Tavuk Izgara"
-        ],
-        "Sebze Yemekleri": [
-            "Türlü",
-            "Taze Fasulye",
-            "Karnıbahar",
-            "Ispanak",
-            "Pırasa",
-            "Bezelye"
-        ],
-        "Et Yemekleri": [
-            "Tas Kebap",
-            "Et Sote",
-            "Kuru Fasulye",
-            "Nohut",
-            "İzmir Köfte"
-        ],
-        "Sade Pirinç / Bulgur / Makarna": [
-            "Pirinç Pilavı",
-            "Bulgur Pilavı",
-            "Makarna"
-        ],
-        "Cacık / Salata / Komposto": [
-            "Cacık",
-            "Salata",
-            "Komposto"
-        ],
-        "Ayran / Meyve Suyu vb.": [
-            "Ayran",
-            "Meyve Suyu"
-        ],
-        "Tatlı": [
-            "Sütlaç",
-            "Revani",
-            "Kemalpaşa"
-        ]
+    let menu = {
+        corba: [],
+        ana: [],
+        yan: [],
+        ek: []
     };
 
-    const EXTRA_CATEGORY_PRICES = {
-        "Çorbalar": 70,
-        "Tavuk Yemekleri": 120,
-        "Sebze Yemekleri": 100,
-        "Et Yemekleri": 150,
-        "Sade Pirinç / Bulgur / Makarna": 80,
-        "Cacık / Salata / Komposto": 40,
-        "Ayran / Meyve Suyu vb.": 20,
-        "Tatlı": 50
-    };
+    let extraData = {};
+    let extraPrices = {};
 
-    async function getMenu() {
+    function parseCSV(text) {
+        const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+        return rows.map(row => row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim()));
+    }
+
+    async function getMenus() {
         try {
-            const resp = await fetch(URL, { cache: "no-store" });
-            const text = await resp.text();
+            const [tabldotResp, extraResp] = await Promise.all([
+                fetch(TABLDOT_URL, { cache: "no-store" }),
+                fetch(EXTRA_URL, { cache: "no-store" })
+            ]);
 
-            const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+            const [tabldotText, extraText] = await Promise.all([
+                tabldotResp.text(),
+                extraResp.text()
+            ]);
 
-            rows.forEach((row, index) => {
-                if (index === 0) return;
+            parseTabldotMenu(tabldotText);
+            parseExtraMenu(extraText);
 
-                let cols = row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
-
-                if (cols[0]) menu.corba.push(cols[0]);
-                if (cols[1]) menu.ana.push(cols[1]);
-                if (cols[2]) menu.yan.push(cols[2]);
-                if (cols[3]) menu.ek.push(cols[3]);
-            });
-
-            menu.corba = [...new Set(menu.corba)];
-            menu.ana   = [...new Set(menu.ana)];
-            menu.yan   = [...new Set(menu.yan)];
-            menu.ek    = [...new Set(menu.ek)];
-
-            // Çorba listesini ekstra ürün seçeneklerine sheet'ten bağla
-            EXTRA_PRODUCT_OPTIONS["Çorbalar"] = [...menu.corba];
-
-            if (menu.corba.length > 0 || menu.ana.length > 0 || menu.yan.length > 0 || menu.ek.length > 0) {
-                initPersonCount();
-                $("#loading").hide();
-                $("#mainForm").show();
-                generateForms();
-                addExtraRow();
-                updateSummary();
-            } else {
-                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Tabloyu kontrol edin.</span>");
+            if (
+                menu.corba.length === 0 &&
+                menu.ana.length === 0 &&
+                menu.yan.length === 0 &&
+                menu.ek.length === 0
+            ) {
+                $("#loading").html("<span style='color:red;'>Tabldot menüsü okunamadı. Sayfa1 verilerini kontrol edin.</span>");
+                return;
             }
+
+            if (Object.keys(extraData).length === 0) {
+                $("#loading").html("<span style='color:red;'>Ekstra ürünler okunamadı. Sayfa2 verilerini ve gid değerini kontrol edin.</span>");
+                return;
+            }
+
+            initPersonCount();
+            $("#loading").hide();
+            $("#mainForm").show();
+            generateForms();
+            addExtraRow();
+            updateSummary();
+
         } catch (err) {
-            $("#loading").html("<span style='color:red;'>Bağlantı hatası.</span>");
+            console.error(err);
+            $("#loading").html("<span style='color:red;'>Bağlantı hatası. Sheet ID veya gid değerlerini kontrol edin.</span>");
         }
+    }
+
+    function parseTabldotMenu(text) {
+        const rows = parseCSV(text);
+
+        menu = { corba: [], ana: [], yan: [], ek: [] };
+
+        rows.forEach((cols, index) => {
+            if (index === 0) return;
+
+            if (cols[0]) menu.corba.push(cols[0]);
+            if (cols[1]) menu.ana.push(cols[1]);
+            if (cols[2]) menu.yan.push(cols[2]);
+            if (cols[3]) menu.ek.push(cols[3]);
+        });
+
+        menu.corba = [...new Set(menu.corba)];
+        menu.ana = [...new Set(menu.ana)];
+        menu.yan = [...new Set(menu.yan)];
+        menu.ek = [...new Set(menu.ek)];
+    }
+
+    function parseExtraMenu(text) {
+        const rows = parseCSV(text);
+
+        extraData = {};
+        extraPrices = {};
+
+        rows.forEach((cols, index) => {
+            if (index === 0) return;
+
+            const kategori = cols[0] || "";
+            const urunAdi = cols[1] || "";
+            const fiyat = parseFloat((cols[2] || "0").replace(",", ".")) || 0;
+
+            if (!kategori || !urunAdi) return;
+
+            if (!extraData[kategori]) {
+                extraData[kategori] = [];
+            }
+
+            extraData[kategori].push(urunAdi);
+
+            if (!extraPrices[kategori]) {
+                extraPrices[kategori] = fiyat;
+            }
+        });
+
+        Object.keys(extraData).forEach(k => {
+            extraData[k] = [...new Set(extraData[k])];
+        });
     }
 
     function initPersonCount() {
         const select = $("#personCount");
         select.empty();
+
         for (let i = 1; i <= 15; i++) {
             select.append(`<option value="${i}">${i} Kişilik</option>`);
         }
@@ -454,22 +469,21 @@
     }
 
     function getCategoryOptionsHtml() {
-        return Object.keys(EXTRA_CATEGORY_PRICES).map(cat => `<option value="${cat}">${cat}</option>`).join('');
-    }
-
-    function getProductOptions(category) {
-        return EXTRA_PRODUCT_OPTIONS[category] || [];
+        return Object.keys(extraData).map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
 
     function getProductOptionsHtml(category) {
-        const options = getProductOptions(category);
+        const options = extraData[category] || [];
         if (!options.length) return `<option value="">Ürün bulunamadı</option>`;
         return options.map(item => `<option value="${item}">${item}</option>`).join('');
     }
 
     function addExtraRow() {
+        const categories = Object.keys(extraData);
+        if (!categories.length) return;
+
         const rowId = `extraRow_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        const defaultCategory = Object.keys(EXTRA_CATEGORY_PRICES)[0];
+        const defaultCategory = categories[0];
 
         $("#extraRows").append(`
             <div class="extra-row" id="${rowId}">
@@ -545,7 +559,7 @@
             const category = $(this).find(".extra-category").val();
             const product = $(this).find(".extra-product").val();
             const qty = parseInt($(this).find(".extra-qty").val(), 10) || 0;
-            const unitPrice = EXTRA_CATEGORY_PRICES[category] || 0;
+            const unitPrice = extraPrices[category] || 0;
 
             if (product && qty > 0) {
                 totalPrice += qty * unitPrice;
@@ -596,7 +610,10 @@
 
         const now = new Date();
         const dateText = now.toLocaleDateString("tr-TR");
-        const timeText = now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+        const timeText = now.toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
 
         const tabldotSummary = getTabldotSummary();
         const extraSummary = getExtraSummary();
@@ -631,7 +648,7 @@
         window.location.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg);
     }
 
-    $(document).ready(() => getMenu());
+    $(document).ready(() => getMenus());
 </script>
 </body>
 </html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ata Mutfak Sipariş Formu</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 500px; background: white; padding: 20px; border-radius: 15px; shadow: 0 4px 6px rgba(0,0,0,0.1); margin: auto; }
+        h2 { color: #e67e22; text-align: center; border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+        .category { font-weight: bold; margin-top: 20px; color: #333; display: block; border-left: 4px solid #e67e22; padding-left: 10px; }
+        .option { background: #f9f9f9; margin: 8px 0; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; border: 1px solid #ddd; }
+        .option input { margin-right: 15px; transform: scale(1.2); }
+        .btn { width: 100%; background: #25D366; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        .btn:hover { background: #128C7E; }
+        .price { text-align: center; font-size: 1.2em; font-weight: bold; margin: 10px 0; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ATA MUTFAK</h2>
+    <p class="price">Tabldot Menü: 200₺</p>
+
+    <form id="orderForm">
+        <span class="category">🥣 ÇORBALAR</span>
+        <label class="option"><input type="radio" name="corba" value="Domates Çorbası" required> Domates Çorbası</label>
+        <label class="option"><input type="radio" name="corba" value="Mercimek Çorbası"> Mercimek Çorbası</label>
+
+        <span class="category">🍖 ANA YEMEKLER</span>
+        <label class="option"><input type="radio" name="ana" value="Püreli Tavuk" required> Püreli Tavuk</label>
+        <label class="option"><input type="radio" name="ana" value="Patlıcan Musakka"> Patlıcan Musakka</label>
+        <label class="option"><input type="radio" name="ana" value="Ispanak"> Ispanak</label>
+        <label class="option"><input type="radio" name="ana" value="Barbunya"> Barbunya</label>
+        <label class="option"><input type="radio" name="ana" value="Tavuk Haşlama"> Tavuk Haşlama</label>
+        <label class="option"><input type="radio" name="ana" value="Nohut"> Nohut</label>
+        <label class="option"><input type="radio" name="ana" value="Tavuk Fajita"> Tavuk Fajita</label>
+
+        <span class="category">🍚 YAN LEZZETLER</span>
+        <label class="option"><input type="radio" name="yan" value="Pirinç Pilavı" required> Pirinç Pilavı</label>
+        <label class="option"><input type="radio" name="yan" value="Bulgur Pilavı"> Bulgur Pilavı</label>
+        <label class="option"><input type="radio" name="yan" value="Domates Soslu Erişte"> Domates Soslu Erişte</label>
+
+        <span class="category">🥤 İÇECEK / EK</span>
+        <label class="option"><input type="radio" name="ek" value="Cacık" required> Cacık</label>
+        <label class="option"><input type="radio" name="ek" value="Salata"> Salata</label>
+        <label class="option"><input type="radio" name="ek" value="Ayran"> Ayran</label>
+        <label class="option"><input type="radio" name="ek" value="Meyve Suyu"> Meyve Suyu</label>
+        <label class="option"><input type="radio" name="ek" value="Limonata/Karadut/Mandalina"> Limonata / Karadut / Mandalina</label>
+
+        <button type="button" class="btn" onclick="sendWhatsApp()">SİPARİŞİ WHATSAPP'TAN ONAYLA</button>
+    </form>
+</div>
+
+<script>
+    function sendWhatsApp() {
+        const form = document.getElementById('orderForm');
+        const formData = new FormData(form);
+        
+        const corba = formData.get('corba');
+        const ana = formData.get('ana');
+        const yan = formData.get('yan');
+        const ek = formData.get('ek');
+
+        if(!corba || !ana || !yan || !ek) {
+            alert("Lütfen her kategoriden bir seçim yapın!");
+            return;
+        }
+
+        const telefon = "905077476114";
+        const mesaj = `*Ata Mutfak Yeni Sipariş*\n----------\n🥣 Çorba: ${corba}\n🍖 Ana Yemek: ${ana}\n🍚 Yan Lezzet: ${yan}\n🥤 Ek: ${ek}\n----------\nOnaylıyorum.`;
+        
+        const wpUrl = "https://wa.me/" + telefon + "?text=" + encodeURIComponent(mesaj);
+        window.location.href = wpUrl;
+    }
+</script>
+
+</body>
+</html>

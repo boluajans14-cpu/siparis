@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ata Mutfak - Sipariş</title>
+    <title>Ata Mutfak - Sipariş Paneli</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
         :root { --p-color: #d35400; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; padding: 15px; }
-        .container { max-width: 500px; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); margin: auto; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 15px; margin: 0; }
+        .container { max-width: 500px; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: auto; }
         .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 25px; padding-bottom: 15px; }
-        .person-card { border: 1px solid #eee; padding: 20px; border-radius: 15px; margin-bottom: 20px; background: #fafafa; position: relative; }
-        .person-label { position: absolute; top: -10px; left: 15px; background: var(--p-color); color: white; padding: 2px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .person-card { border: 1px solid #eee; padding: 20px; border-radius: 15px; margin-bottom: 20px; background: #fdfdfd; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .person-label { position: absolute; top: -12px; left: 15px; background: var(--p-color); color: white; padding: 3px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
         .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; color: #555; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; }
-        #loading { text-align: center; color: var(--p-color); padding: 30px; font-weight: bold; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; color: #444; }
+        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--p-color); }
+        .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        #loading { text-align: center; color: var(--p-color); padding: 40px; font-weight: bold; font-size: 18px; }
     </style>
 </head>
 <body>
@@ -24,21 +25,33 @@
 <div class="container">
     <div class="header">
         <h2 style="color:var(--p-color); margin:0;">ATA MUTFAK</h2>
-        <p style="margin:5px 0; color:#888;">Hızlı Sipariş Sistemi</p>
+        <p style="margin:5px 0; color:#666;">Günlük Tabldot Sipariş Formu</p>
     </div>
 
-    <div id="loading">Menü E-Tablo'dan okunuyor...</div>
+    <div id="loading">Menü E-Tablo'dan yükleniyor...</div>
 
     <form id="mainForm" style="display:none;">
-        <div class="input-group"><label>Ad Soyad *</label><input type="text" id="custName" required placeholder="İsminiz"></div>
-        <div class="input-group"><label>Teslimat Adresi *</label><textarea id="custAddress" rows="2" required placeholder="Adresiniz"></textarea></div>
         <div class="input-group">
-            <label>Kişi Sayısı *</label>
+            <label>Ad Soyad *</label>
+            <input type="text" id="custName" required placeholder="Adınız ve Soyadınız">
+        </div>
+        <div class="input-group">
+            <label>Teslimat Adresi *</label>
+            <textarea id="custAddress" rows="2" required placeholder="Mahalle, Sokak, No..."></textarea>
+        </div>
+        <div class="input-group">
+            <label>Kaç Kişilik Menü? *</label>
             <select id="personCount" onchange="generateForms()">
-                <option value="1">1 Kişilik</option><option value="2">2 Kişilik</option><option value="3">3 Kişilik</option>
+                <option value="1">1 Kişilik</option>
+                <option value="2">2 Kişilik</option>
+                <option value="3">3 Kişilik</option>
+                <option value="4">4 Kişilik</option>
+                <option value="5">5 Kişilik</option>
             </select>
         </div>
+
         <div id="dynamicPersons"></div>
+
         <button type="button" class="btn" onclick="sendOrder()">SİPARİŞİ WHATSAPP'A GÖNDER</button>
     </form>
 </div>
@@ -54,27 +67,29 @@
             const resp = await fetch(URL);
             const text = await resp.text();
             
+            // Satırları ayır (boşları temizle)
             const rows = text.split(/\r?\n/).filter(row => row.trim() !== "");
 
-            rows.slice(1).forEach(row => {
-                // Hem virgül hem noktalı virgül ile ayır, boşlukları temizle
-                let cols = row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
+            // 1. satırı (başlıkları) atlayıp verileri çekiyoruz
+            for (let i = 1; i < rows.length; i++) {
+                // CSV ayırma: Virgül veya Noktalı Virgül (Tırnakları da temizler)
+                let cols = rows[i].split(/[;,]/).map(item => item.replace(/^"|"$/g, '').trim());
 
                 if (cols[0]) menu.corba.push(cols[0]);
                 if (cols[1]) menu.ana.push(cols[1]);
                 if (cols[2]) menu.yan.push(cols[2]);
                 if (cols[3]) menu.ek.push(cols[3]);
-            });
+            }
 
-            if(menu.corba.length > 0) {
+            if(menu.corba.length > 0 || menu.ana.length > 0) {
                 $("#loading").hide();
                 $("#mainForm").show();
                 generateForms();
             } else {
-                $("#loading").html("<span style='color:red;'>Tablo bağlandı ama veri ayrıştırılamadı.</span>");
+                $("#loading").html("<span style='color:red;'>Tablo bağlandı ancak içerik okunamadı.<br>Lütfen Google Sheets'teki verileri kontrol edin.</span>");
             }
         } catch (err) {
-            $("#loading").text("Bağlantı Hatası!");
+            $("#loading").text("Bağlantı Hatası: Tabloya erişilemiyor!");
         }
     }
 
@@ -82,29 +97,57 @@
         const count = $("#personCount").val();
         const container = $("#dynamicPersons");
         container.empty();
+
         for(let i = 1; i <= count; i++) {
             container.append(`
                 <div class="person-card">
-                    <span class="person-label">${i}. KİŞİ</span>
-                    <div class="input-group"><label>Çorba</label><select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select></div>
-                    <div class="input-group"><label>Ana Yemek</label><select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select></div>
-                    <div class="input-group"><label>Yan Lezzet</label><select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select></div>
-                    <div class="input-group"><label>İçecek</label><select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select></div>
-                </div>`);
+                    <span class="person-label">${i}. KİŞİ SEÇİMİ</span>
+                    <div class="input-group">
+                        <label>Çorba</label>
+                        <select class="p-corba">${menu.corba.map(x => `<option value="${x}">${x}</option>`).join('')}</select>
+                    </div>
+                    <div class="input-group">
+                        <label>Ana Yemek</label>
+                        <select class="p-ana">${menu.ana.map(x => `<option value="${x}">${x}</option>`).join('')}</select>
+                    </div>
+                    <div class="input-group">
+                        <label>Yan Lezzet</label>
+                        <select class="p-yan">${menu.yan.map(x => `<option value="${x}">${x}</option>`).join('')}</select>
+                    </div>
+                    <div class="input-group">
+                        <label>İçecek / Ek</label>
+                        <select class="p-ek">${menu.ek.map(x => `<option value="${x}">${x}</option>`).join('')}</select>
+                    </div>
+                </div>
+            `);
         }
     }
 
     function sendOrder() {
         const name = $("#custName").val();
         const addr = $("#custAddress").val();
-        if(!name || !addr) { alert("Lütfen alanları doldurun!"); return; }
-        let msg = `*YENİ SİPARİŞ*\n👤 *Müşteri:* ${name}\n📍 *Adres:* ${addr}\n----------\n`;
+        const count = $("#personCount").val();
+
+        if(!name || !addr) { 
+            alert("Lütfen Ad Soyad ve Adres alanlarını doldurun!"); 
+            return; 
+        }
+
+        let msg = `*YENİ SİPARİŞ (Ata Mutfak)*\n`;
+        msg += `👤 *Müşteri:* ${name}\n`;
+        msg += `📍 *Adres:* ${addr}\n`;
+        msg += `👥 *Kişi Sayısı:* ${count}\n`;
+        msg += `----------\n`;
+
         $(".person-card").each(function(i) {
             msg += `*${i+1}. Kişi:* ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
         });
+
         window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);
     }
+
     $(document).ready(() => getMenu());
 </script>
+
 </body>
 </html>

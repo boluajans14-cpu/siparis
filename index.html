@@ -16,7 +16,6 @@
         label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; color: #555; }
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
         .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; transition: 0.3s; }
-        .btn:hover { background: #1eb954; }
         #loading { text-align: center; color: var(--p-color); padding: 30px; font-weight: bold; }
     </style>
 </head>
@@ -28,36 +27,23 @@
         <p style="margin:5px 0; color:#888;">Hızlı Sipariş Sistemi</p>
     </div>
 
-    <div id="loading">Menü güncelleniyor...</div>
+    <div id="loading">Menü E-Tablo'dan okunuyor...</div>
 
     <form id="mainForm" style="display:none;">
+        <div class="input-group"><label>Ad Soyad *</label><input type="text" id="custName" required placeholder="İsminiz"></div>
+        <div class="input-group"><label>Teslimat Adresi *</label><textarea id="custAddress" rows="2" required placeholder="Adresiniz"></textarea></div>
         <div class="input-group">
-            <label>Ad Soyad *</label>
-            <input type="text" id="custName" required placeholder="İsminiz">
-        </div>
-        <div class="input-group">
-            <label>Teslimat Adresi *</label>
-            <textarea id="custAddress" rows="2" required placeholder="Açık adresiniz"></textarea>
-        </div>
-        <div class="input-group">
-            <label>Kaç Kişilik Menü? *</label>
+            <label>Kişi Sayısı *</label>
             <select id="personCount" onchange="generateForms()">
-                <option value="1">1 Kişilik</option>
-                <option value="2">2 Kişilik</option>
-                <option value="3">3 Kişilik</option>
-                <option value="4">4 Kişilik</option>
-                <option value="5">5 Kişilik</option>
+                <option value="1">1 Kişilik</option><option value="2">2 Kişilik</option><option value="3">3 Kişilik</option>
             </select>
         </div>
-
         <div id="dynamicPersons"></div>
-
         <button type="button" class="btn" onclick="sendOrder()">SİPARİŞİ WHATSAPP'A GÖNDER</button>
     </form>
 </div>
 
 <script>
-    // Sizin Tablo ID'niz
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWyCSZq1kTB2rPcUy_NF_o';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
@@ -68,14 +54,11 @@
             const resp = await fetch(URL);
             const text = await resp.text();
             
-            // Satırları ayır ve temizle
             const rows = text.split(/\r?\n/).filter(row => row.trim() !== "");
 
-            // Verileri işle (Başlık satırını atlıyoruz: slice(1))
             rows.slice(1).forEach(row => {
-                // CSV ayırma regex (virgül veya noktalı virgül uyumlu)
-                const cols = row.split(/[,;](?=(?:(?:[^"]*"){2})*[^"]*$)/)
-                                .map(c => c.replace(/^"|"$/g, '').trim());
+                // Hem virgül hem noktalı virgül ile ayır, boşlukları temizle
+                let cols = row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
 
                 if (cols[0]) menu.corba.push(cols[0]);
                 if (cols[1]) menu.ana.push(cols[1]);
@@ -88,10 +71,10 @@
                 $("#mainForm").show();
                 generateForms();
             } else {
-                $("#loading").html("<span style='color:red;'>Hata: Tabloda veri bulunamadı!<br>Lütfen Google Sheets'e yemekleri yazın.</span>");
+                $("#loading").html("<span style='color:red;'>Tablo bağlandı ama veri ayrıştırılamadı.</span>");
             }
         } catch (err) {
-            $("#loading").text("Bağlantı Hatası! Lütfen internetinizi kontrol edin.");
+            $("#loading").text("Bağlantı Hatası!");
         }
     }
 
@@ -99,53 +82,28 @@
         const count = $("#personCount").val();
         const container = $("#dynamicPersons");
         container.empty();
-
         for(let i = 1; i <= count; i++) {
             container.append(`
                 <div class="person-card">
                     <span class="person-label">${i}. KİŞİ</span>
-                    <div class="input-group">
-                        <label>Çorba</label>
-                        <select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select>
-                    </div>
-                    <div class="input-group">
-                        <label>Ana Yemek</label>
-                        <select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select>
-                    </div>
-                    <div class="input-group">
-                        <label>Yan Lezzet</label>
-                        <select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select>
-                    </div>
-                    <div class="input-group">
-                        <label>İçecek/Ek</label>
-                        <select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select>
-                    </div>
-                </div>
-            `);
+                    <div class="input-group"><label>Çorba</label><select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>Ana Yemek</label><select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>Yan Lezzet</label><select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>İçecek</label><select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select></div>
+                </div>`);
         }
     }
 
     function sendOrder() {
         const name = $("#custName").val();
         const addr = $("#custAddress").val();
-        const count = $("#personCount").val();
-
-        if(!name || !addr) { alert("Lütfen ad soyad ve adres alanlarını doldurun!"); return; }
-
-        let msg = `*YENİ SİPARİŞ (Ata Mutfak)*\n`;
-        msg += `👤 *Müşteri:* ${name}\n`;
-        msg += `📍 *Adres:* ${addr}\n`;
-        msg += `👥 *Kişi Sayısı:* ${count}\n`;
-        msg += `----------\n`;
-
+        if(!name || !addr) { alert("Lütfen alanları doldurun!"); return; }
+        let msg = `*YENİ SİPARİŞ*\n👤 *Müşteri:* ${name}\n📍 *Adres:* ${addr}\n----------\n`;
         $(".person-card").each(function(i) {
             msg += `*${i+1}. Kişi:* ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
         });
-
-        const telefon = "905077476114";
-        window.location.href = `https://wa.me/${telefon}?text=` + encodeURIComponent(msg);
+        window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);
     }
-
     $(document).ready(() => getMenu());
 </script>
 </body>

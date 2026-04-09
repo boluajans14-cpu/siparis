@@ -25,7 +25,7 @@
         <p style="margin:5px 0; color:#888;">Sipariş Paneli</p>
     </div>
 
-    <div id="loading">Menü E-Tablo'dan alınıyor...</div>
+    <div id="loading">Menü Hazırlanıyor...</div>
 
     <form id="mainForm" style="display:none;">
         <label>Ad Soyad *</label>
@@ -43,14 +43,13 @@
 
         <div id="dynamicPersons"></div>
 
-        <button type="button" class="btn" onclick="sendOrder()">WHATSAPP'A GÖNDER</button>
+        <button type="button" class="btn" onclick="sendOrder()">SİPARİŞİ GÖNDER</button>
     </form>
 </div>
 
 <script>
-    // Tablo ID'n aynı kalıyor
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWyCSZq1kTB2rPcUy_NF_o';
-    // Bağlantısı çalışan o eski, sağlam URL formatı
+    // Bu URL formatı en stabil olanıdır
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
     let menu = { corba: [], ana: [], yan: [], ek: [] };
@@ -60,31 +59,36 @@
             const resp = await fetch(URL);
             const text = await resp.text();
             
-            // Satırları parçala
+            // Satırları ayır ve boşları temizle
             const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
 
-            // Verileri işle (Başlık satırını atla)
-            for (let i = 1; i < rows.length; i++) {
-                // Sütunları ayırırken hem virgül hem noktalı virgül kontrolü yap (En kritik yer)
-                let cols = rows[i].split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
+            // Gelen veriyi konsola yazalım (F12 ile bakabilirsin)
+            console.log("Gelen Veri:", rows);
+
+            rows.forEach((row, index) => {
+                // İlk satır başlık olduğu için içeriğe bakıp atlayalım
+                if (index === 0) return;
+
+                // Veriyi hem virgül hem noktalı virgüle göre ayırıyoruz
+                let cols = row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
 
                 if (cols[0]) menu.corba.push(cols[0]);
                 if (cols[1]) menu.ana.push(cols[1]);
                 if (cols[2]) menu.yan.push(cols[2]);
                 if (cols[3]) menu.ek.push(cols[3]);
-            }
+            });
 
-            // Eğer herhangi bir veri geldiyse formu göster
+            // Herhangi bir sütun dolduysa devam et
             if (menu.corba.length > 0 || menu.ana.length > 0) {
                 $("#loading").hide();
                 $("#mainForm").show();
                 generateForms();
             } else {
-                $("#loading").html("<span style='color:red;'>Tabloya bağlandık ama içi boş görünüyor.<br>Lütfen tabloda verilerin A, B, C sütunlarında olduğundan emin olun.</span>");
+                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Lütfen tabloda A2, B2 hücrelerinden itibaren yemek yazılı olduğundan emin olun.</span>");
             }
 
         } catch (err) {
-            $("#loading").html("<span style='color:red;'>Bağlantı Hatası!<br>Lütfen 'Web'de Yayınla' ayarını kontrol edin.</span>");
+            $("#loading").html("<span style='color:red;'>Bağlantı Hatası! Lütfen internetinizi kontrol edin.</span>");
         }
     }
 
@@ -98,13 +102,13 @@
                 <div class="person-card">
                     <strong style="color:var(--p-color)">${i}. Kişi</strong>
                     <label>Çorba</label>
-                    <select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select>
+                    <select class="p-corba">${menu.corba.length ? menu.corba.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
                     <label>Ana Yemek</label>
-                    <select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select>
+                    <select class="p-ana">${menu.ana.length ? menu.ana.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
                     <label>Yan Lezzet</label>
-                    <select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select>
+                    <select class="p-yan">${menu.yan.length ? menu.yan.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
                     <label>İçecek</label>
-                    <select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select>
+                    <select class="p-ek">${menu.ek.length ? menu.ek.map(x => `<option>${x}</option>`).join('') : '<option>Yok</option>'}</select>
                 </div>
             `);
         }
@@ -113,7 +117,7 @@
     function sendOrder() {
         const name = $("#custName").val();
         const addr = $("#custAddress").val();
-        if(!name || !addr) return alert("Lütfen boş alan bırakmayın!");
+        if(!name || !addr) return alert("Lütfen isim ve adres yazın.");
 
         let msg = `*YENİ SİPARİŞ*\n👤 *Müşteri:* ${name}\n📍 *Adres:* ${addr}\n----------\n`;
         $(".person-card").each(function(i) {

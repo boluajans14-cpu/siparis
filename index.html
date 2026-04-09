@@ -1,43 +1,134 @@
-<script>
-    const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWYcSZq1kTB2rPcUy_NF_o';
-    const SHEET_GID = '0';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ata Mutfak - Sipariş Paneli</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        :root { --p-color: #d35400; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; }
+        .container { max-width: 500px; background: #fff; padding: 20px; border-radius: 15px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .person-card { border: 1px solid #ddd; padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        #loading { text-align: center; color: var(--p-color); padding: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-    let menuData = { corbalar: [], anaYemekler: [], yanlar: [], icecekler: [] };
+<div class="container">
+    <div class="header">
+        <h2 style="color:var(--p-color); margin:0;">ATA MUTFAK</h2>
+        <p>Günlük Sipariş Formu</p>
+    </div>
+
+    <div id="loading">Menü yükleniyor, lütfen bekleyin...</div>
+
+    <form id="mainForm" style="display:none;">
+        <div class="input-group">
+            <label>Ad Soyad *</label>
+            <input type="text" id="custName" required>
+        </div>
+        <div class="input-group">
+            <label>Adres *</label>
+            <textarea id="custAddress" required></textarea>
+        </div>
+        <div class="input-group">
+            <label>Kişi Sayısı *</label>
+            <select id="personCount" onchange="generateForms()">
+                <option value="1">1 Kişilik</option>
+                <option value="2">2 Kişilik</option>
+                <option value="3">3 Kişilik</option>
+                <option value="4">4 Kişilik</option>
+                <option value="5">5 Kişilik</option>
+            </select>
+        </div>
+
+        <div id="dynamicPersons"></div>
+
+        <button type="button" class="btn" onclick="sendOrder()">WHATSAPP'A GÖNDER</button>
+    </form>
+</div>
+
+<script>
+    const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWyCSZq1kTB2rPcUy_NF_o';
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+    let menu = { corba: [], ana: [], yan: [], ek: [] };
 
     async function getMenu() {
         try {
-            const response = await fetch(SHEET_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+            console.log("Veri çekiliyor...");
+            const resp = await fetch(URL);
+            const text = await resp.text();
+            
+            const lines = text.split('\n');
+            // Başlık satırını atla ve her satırı işle
+            for(let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(cols[0]) menu.corba.push(cols[0].replace(/"/g, ""));
+                if(cols[1]) menu.ana.push(cols[1].replace(/"/g, ""));
+                if(cols[2]) menu.yan.push(cols[2].replace(/"/g, ""));
+                if(cols[3]) menu.ek.push(cols[3].replace(/"/g, ""));
             }
 
-            const data = await response.text();
-            const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
-
-            rows.slice(1).forEach(row => {
-                const cols = row
-                    .split(/[,;](?=(?:(?:[^"]*"){2})*[^"]*$)/)
-                    .map(c => c.replace(/^"|"$/g, '').trim());
-
-                if (cols[0]) menuData.corbalar.push(cols[0]);
-                if (cols[1]) menuData.anaYemekler.push(cols[1]);
-                if (cols[2]) menuData.yanlar.push(cols[2]);
-                if (cols[3]) menuData.icecekler.push(cols[3]);
-            });
-
-            if (menuData.corbalar.length > 0) {
-                $("#loading").hide();
-                $("#mainForm").show();
+            if(menu.corba.length > 0) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mainForm').style.display = 'block';
                 generateForms();
             } else {
-                $("#loading").text("Tablo boş veya tablo paylaşımı/yayın ayarı kapalı.");
+                document.getElementById('loading').innerText = "Tablo boş görünüyor!";
             }
-        } catch (e) {
-            console.error("Sheet fetch error:", e);
-            $("#loading").text("Hata: Tabloya erişilemedi.");
+        } catch (err) {
+            console.error(err);
+            document.getElementById('loading').innerText = "Hata: Veri alınamadı!";
         }
     }
 
-    $(document).ready(() => getMenu());
+    function generateForms() {
+        const count = document.getElementById('personCount').value;
+        const container = document.getElementById('dynamicPersons');
+        container.innerHTML = '';
+
+        for(let i = 1; i <= count; i++) {
+            container.innerHTML += `
+                <div class="person-card">
+                    <strong>${i}. Kişi Seçimi</strong>
+                    <div class="input-group"><label>Çorba</label><select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>Ana Yemek</label><select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>Yan Lezzet</label><select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select></div>
+                    <div class="input-group"><label>İçecek</label><select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select></div>
+                </div>
+            `;
+        }
+    }
+
+    function sendOrder() {
+        const name = document.getElementById('custName').value;
+        const addr = document.getElementById('custAddress').value;
+        const count = document.getElementById('personCount').value;
+
+        if(!name || !addr) { alert("Lütfen bilgileri doldurun!"); return; }
+
+        let msg = `*YENİ SİPARİŞ*\nİsim: ${name}\nAdres: ${addr}\nKişi: ${count}\n----------\n`;
+        
+        const cards = document.querySelectorAll('.person-card');
+        cards.forEach((card, index) => {
+            const c = card.querySelector('.p-corba').value;
+            const a = card.querySelector('.p-ana').value;
+            const y = card.querySelector('.p-yan').value;
+            const e = card.querySelector('.p-ek').value;
+            msg += `${index+1}. Kişi: ${c}, ${a}, ${y}, ${e}\n`;
+        });
+
+        window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);
+    }
+
+    getMenu();
 </script>
+</body>
+</html>

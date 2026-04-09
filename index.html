@@ -48,28 +48,25 @@
 </div>
 
 <script>
-    const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWyCSZq1kTB2rPcUy_NF_o';
-    // Bu URL formatı en stabil olanıdır
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWYcSZq1kTB2rPcUy_NF_o';
+    const GID = '0';
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
     let menu = { corba: [], ana: [], yan: [], ek: [] };
 
     async function getMenu() {
         try {
-            const resp = await fetch(URL);
+            const resp = await fetch(URL, { cache: "no-store" });
             const text = await resp.text();
-            
-            // Satırları ayır ve boşları temizle
-            const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
 
-            // Gelen veriyi konsola yazalım (F12 ile bakabilirsin)
-            console.log("Gelen Veri:", rows);
+            console.log("Ham CSV:", text);
+
+            const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+            console.log("Satırlar:", rows);
 
             rows.forEach((row, index) => {
-                // İlk satır başlık olduğu için içeriğe bakıp atlayalım
                 if (index === 0) return;
 
-                // Veriyi hem virgül hem noktalı virgüle göre ayırıyoruz
                 let cols = row.split(/[;,]/).map(c => c.replace(/^"|"$/g, '').trim());
 
                 if (cols[0]) menu.corba.push(cols[0]);
@@ -78,17 +75,24 @@
                 if (cols[3]) menu.ek.push(cols[3]);
             });
 
-            // Herhangi bir sütun dolduysa devam et
-            if (menu.corba.length > 0 || menu.ana.length > 0) {
+            menu.corba = [...new Set(menu.corba)];
+            menu.ana   = [...new Set(menu.ana)];
+            menu.yan   = [...new Set(menu.yan)];
+            menu.ek    = [...new Set(menu.ek)];
+
+            console.log("Ayrıştırılmış Menü:", menu);
+
+            if (menu.corba.length > 0 || menu.ana.length > 0 || menu.yan.length > 0 || menu.ek.length > 0) {
                 $("#loading").hide();
                 $("#mainForm").show();
                 generateForms();
             } else {
-                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Lütfen tabloda A2, B2 hücrelerinden itibaren yemek yazılı olduğundan emin olun.</span>");
+                $("#loading").html("<span style='color:red;'>Veri bulunamadı. Lütfen doğru sekmenin gid değerini ve A-B-C-D sütunlarında veri olduğunu kontrol edin.</span>");
             }
 
         } catch (err) {
-            $("#loading").html("<span style='color:red;'>Bağlantı Hatası! Lütfen internetinizi kontrol edin.</span>");
+            console.error("Bağlantı hatası:", err);
+            $("#loading").html("<span style='color:red;'>Bağlantı Hatası! Sheet ID, gid veya paylaşım ayarını kontrol edin.</span>");
         }
     }
 

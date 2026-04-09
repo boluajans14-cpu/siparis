@@ -6,28 +6,256 @@
     <title>Ata Mutfak - Sipariş</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
-        :root { --p-color: #d35400; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 15px; margin: 0; }
-        .container { max-width: 500px; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: auto; }
-        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
-        .person-card { border: 1px solid #eee; padding: 15px; border-radius: 15px; margin-bottom: 20px; background: #fafafa; }
-        label { display: block; font-weight: bold; margin-top: 10px; font-size: 13px; color: #555; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn { width: 100%; background: #25D366; color: #fff; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; }
-        #loading { text-align: center; color: var(--p-color); padding: 40px; font-weight: bold; }
+        :root {
+            --p-color: #0d7a3a;
+            --accent-color: #d35400;
+            --bg-color: #f4f7f6;
+            --card-color: #ffffff;
+            --border-color: #e5e7eb;
+            --muted: #666;
+            --btn-color: #25D366;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            padding: 15px;
+            margin: 0;
+            color: #222;
+        }
+
+        .container {
+            max-width: 760px;
+            background: #fff;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+        }
+
+        .header h2 {
+            color: #111;
+            margin: 0;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+        }
+
+        .header p {
+            margin: 6px 0 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        #loading {
+            text-align: center;
+            color: var(--accent-color);
+            padding: 40px;
+            font-weight: bold;
+        }
+
+        .person-card {
+            border: 1px solid #eee;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            background: #fafafa;
+        }
+
+        .person-title {
+            color: var(--accent-color);
+            font-weight: 800;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .extra-products {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .extra-card {
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            background: #fafafa;
+            display: grid;
+            grid-template-columns: 90px 1fr;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .extra-image {
+            width: 90px;
+            height: 90px;
+            border-radius: 12px;
+            border: 1px dashed #cfcfcf;
+            background: #f1f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+            padding: 6px;
+        }
+
+        .extra-info h4 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            color: #111;
+        }
+
+        .extra-info p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .qty-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .qty-row input {
+            max-width: 100px;
+        }
+
+        .summary-box {
+            margin-top: 20px;
+            background: #fff8f1;
+            border: 1px solid #f3dcc6;
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .summary-box h3 {
+            margin: 0 0 12px;
+            font-size: 17px;
+            color: #111;
+        }
+
+        .summary-line {
+            margin: 6px 0;
+            font-size: 14px;
+            color: #333;
+        }
 
         .kvkk {
             font-size: 12px;
             color: #666;
-            margin-top: 15px;
+            margin-top: 16px;
             display: flex;
             align-items: flex-start;
             gap: 8px;
         }
 
         .kvkk input {
-            margin-top: 3px;
             width: auto;
+            margin-top: 3px;
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--btn-color);
+            color: #fff;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 18px;
+        }
+
+        .price-badge {
+            display: inline-block;
+            background: #e8fff1;
+            color: #0d7a3a;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .note-box {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #777;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 18px;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .extra-card {
+                grid-template-columns: 1fr;
+            }
+
+            .extra-image {
+                width: 100%;
+                height: 120px;
+            }
         }
     </style>
 </head>
@@ -35,27 +263,45 @@
 
 <div class="container">
     <div class="header">
-        <h2 style="color:var(--p-color); margin:0;">ATA MUTFAK</h2>
-        <p style="margin:5px 0; color:#888;">Sipariş Paneli</p>
+        <h2>ATA MUTFAK</h2>
+        <p>Esnaf Lokantası Sipariş Formu</p>
     </div>
 
     <div id="loading">Menü Hazırlanıyor...</div>
 
     <form id="mainForm" style="display:none;">
+        <div class="section-title">Müşteri Bilgileri</div>
+
         <label>Ad Soyad *</label>
         <input type="text" id="custName" required>
-        
+
         <label>Teslimat Adresi *</label>
         <textarea id="custAddress" rows="2" required></textarea>
 
+        <div class="section-title">
+            Tabldot Sipariş
+            <span class="price-badge">Kişi Başı 200 TL</span>
+        </div>
+
         <label>Kişi Sayısı *</label>
-        <select id="personCount" onchange="generateForms()">
-            <option value="1">1 Kişilik</option>
-            <option value="2">2 Kişilik</option>
-            <option value="3">3 Kişilik</option>
-        </select>
+        <select id="personCount" onchange="generateForms(); updateSummary();"></select>
 
         <div id="dynamicPersons"></div>
+
+        <div class="section-title">Ekstra Tekli Ürünler</div>
+        <div class="note-box">
+            Tabldot siparişe ek olarak istenirse aşağıdaki ürünlerden adet girilerek ekstra sipariş verilebilir.
+        </div>
+
+        <div id="extraProducts" class="extra-products"></div>
+
+        <div class="summary-box">
+            <h3>Genel Sipariş Özeti</h3>
+            <div class="summary-line" id="summaryTabldot">Tabldot Tutarı: 0 TL</div>
+            <div class="summary-line" id="summaryExtra">Ekstra Ürün Tutarı: 0 TL</div>
+            <div class="summary-line" id="summaryTotal">Toplam Tutar: 0 TL</div>
+            <div class="summary-line" id="summaryItems">Ürün Özeti: -</div>
+        </div>
 
         <label class="kvkk">
             <input type="checkbox" id="kvkkCheck">
@@ -70,9 +316,21 @@
     const SHEET_ID = '1Tym9AWjTN-2WT4POrdRb2TWYcSZq1kTB2rPcUy_NF_o';
     const GID = '0';
     const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
-    const PRICE_PER_PERSON = 200;
+    const TABLDOT_PRICE_PER_PERSON = 200;
+    const WHATSAPP_NUMBER = '905077476114';
 
     let menu = { corba: [], ana: [], yan: [], ek: [] };
+
+    const extraProducts = [
+        { name: "Çorbalar", price: 70, desc: "Ekstra tekli sipariş" },
+        { name: "Tavuk Yemekleri", price: 120, desc: "Ekstra tekli sipariş" },
+        { name: "Sebze Yemekleri", price: 100, desc: "Ekstra tekli sipariş" },
+        { name: "Et Yemekleri", price: 150, desc: "Ekstra tekli sipariş" },
+        { name: "Sade Pirinç / Bulgur / Makarna", price: 80, desc: "Ekstra tekli sipariş" },
+        { name: "Cacık / Salata / Komposto", price: 40, desc: "Ekstra tekli sipariş" },
+        { name: "Ayran / Meyve Suyu vb.", price: 20, desc: "Ekstra tekli sipariş" },
+        { name: "Tatlı", price: 50, desc: "Ekstra tekli sipariş" }
+    ];
 
     async function getMenu() {
         try {
@@ -98,46 +356,173 @@
             menu.ek    = [...new Set(menu.ek)];
 
             if (menu.corba.length > 0 || menu.ana.length > 0 || menu.yan.length > 0 || menu.ek.length > 0) {
+                initPersonCount();
+                renderExtraProducts();
                 $("#loading").hide();
                 $("#mainForm").show();
                 generateForms();
+                updateSummary();
             } else {
                 $("#loading").html("<span style='color:red;'>Veri bulunamadı. Tabloyu kontrol edin.</span>");
             }
-
         } catch (err) {
             $("#loading").html("<span style='color:red;'>Bağlantı hatası.</span>");
         }
     }
 
+    function initPersonCount() {
+        const select = $("#personCount");
+        select.empty();
+
+        for (let i = 1; i <= 15; i++) {
+            select.append(`<option value="${i}">${i} Kişilik</option>`);
+        }
+    }
+
     function generateForms() {
-        const count = $("#personCount").val();
+        const count = parseInt($("#personCount").val(), 10);
         const container = $("#dynamicPersons");
         container.empty();
 
-        for(let i = 1; i <= count; i++) {
+        for (let i = 1; i <= count; i++) {
             container.append(`
                 <div class="person-card">
-                    <strong style="color:var(--p-color)">${i}. Kişi</strong>
-                    <label>Çorba</label>
-                    <select class="p-corba">${menu.corba.map(x => `<option>${x}</option>`).join('')}</select>
-                    <label>Ana Yemek</label>
-                    <select class="p-ana">${menu.ana.map(x => `<option>${x}</option>`).join('')}</select>
-                    <label>Yan Lezzet</label>
-                    <select class="p-yan">${menu.yan.map(x => `<option>${x}</option>`).join('')}</select>
-                    <label>İçecek</label>
-                    <select class="p-ek">${menu.ek.map(x => `<option>${x}</option>`).join('')}</select>
+                    <div class="person-title">${i}. Kişi</div>
+                    <div class="menu-grid">
+                        <div>
+                            <label>Çorba</label>
+                            <select class="p-corba" onchange="updateSummary()">
+                                ${menu.corba.map(x => `<option>${x}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Ana Yemek</label>
+                            <select class="p-ana" onchange="updateSummary()">
+                                ${menu.ana.map(x => `<option>${x}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>Yan Lezzet</label>
+                            <select class="p-yan" onchange="updateSummary()">
+                                ${menu.yan.map(x => `<option>${x}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label>İçecek</label>
+                            <select class="p-ek" onchange="updateSummary()">
+                                ${menu.ek.map(x => `<option>${x}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             `);
         }
+    }
+
+    function renderExtraProducts() {
+        const container = $("#extraProducts");
+        container.empty();
+
+        extraProducts.forEach((product, index) => {
+            container.append(`
+                <div class="extra-card">
+                    <div class="extra-image">Görsel<br>Bekleniyor</div>
+                    <div class="extra-info">
+                        <h4>${product.name}</h4>
+                        <p>${product.desc}</p>
+                        <div class="qty-row">
+                            <span><strong>${product.price} TL</strong></span>
+                            <input 
+                                type="number" 
+                                min="0" 
+                                value="0" 
+                                class="extra-qty" 
+                                data-index="${index}" 
+                                onchange="updateSummary()"
+                            >
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    function getTabldotSummary() {
+        const countMap = {};
+        const details = [];
+        const personCount = parseInt($("#personCount").val(), 10);
+        const totalPrice = personCount * TABLDOT_PRICE_PER_PERSON;
+
+        $(".person-card").each(function(i) {
+            const corba = $(this).find(".p-corba").val();
+            const ana = $(this).find(".p-ana").val();
+            const yan = $(this).find(".p-yan").val();
+            const ek = $(this).find(".p-ek").val();
+
+            details.push(`${i + 1}. Kişi: ${corba}, ${ana}, ${yan}, ${ek}`);
+
+            [corba, ana, yan, ek].forEach(item => {
+                if (item) {
+                    countMap[item] = (countMap[item] || 0) + 1;
+                }
+            });
+        });
+
+        return { totalPrice, countMap, details, personCount };
+    }
+
+    function getExtraSummary() {
+        const countMap = {};
+        const details = [];
+        let totalPrice = 0;
+
+        $(".extra-qty").each(function() {
+            const index = parseInt($(this).data("index"), 10);
+            const qty = parseInt($(this).val(), 10) || 0;
+            const product = extraProducts[index];
+
+            if (qty > 0) {
+                totalPrice += qty * product.price;
+                countMap[product.name] = qty;
+                details.push(`${product.name}: ${qty} adet`);
+            }
+        });
+
+        return { totalPrice, countMap, details };
+    }
+
+    function mergeCountMaps(map1, map2) {
+        const result = { ...map1 };
+
+        Object.keys(map2).forEach(key => {
+            result[key] = (result[key] || 0) + map2[key];
+        });
+
+        return result;
+    }
+
+    function formatCountMap(countMap) {
+        const entries = Object.entries(countMap);
+        if (!entries.length) return "-";
+        return entries.map(([name, qty]) => `${name}: ${qty}`).join(" | ");
+    }
+
+    function updateSummary() {
+        const tabldotSummary = getTabldotSummary();
+        const extraSummary = getExtraSummary();
+        const totalPrice = tabldotSummary.totalPrice + extraSummary.totalPrice;
+        const combinedCounts = mergeCountMaps(tabldotSummary.countMap, extraSummary.countMap);
+
+        $("#summaryTabldot").text(`Tabldot Tutarı: ${tabldotSummary.totalPrice} TL`);
+        $("#summaryExtra").text(`Ekstra Ürün Tutarı: ${extraSummary.totalPrice} TL`);
+        $("#summaryTotal").text(`Toplam Tutar: ${totalPrice} TL`);
+        $("#summaryItems").text(`Ürün Özeti: ${formatCountMap(combinedCounts)}`);
     }
 
     function sendOrder() {
         const name = $("#custName").val().trim();
         const addr = $("#custAddress").val().trim();
         const kvkk = $("#kvkkCheck").is(":checked");
-        const personCount = parseInt($("#personCount").val(), 10);
-        const totalPrice = personCount * PRICE_PER_PERSON;
 
         if (!name || !addr) {
             alert("Lütfen isim ve adres giriniz.");
@@ -156,13 +541,32 @@
             minute: "2-digit"
         });
 
-        let msg = `${name}\n${addr}\n\nTarih: ${dateText}\nSaat: ${timeText}\nToplam Tutar: ${totalPrice} TL\n\n`;
+        const tabldotSummary = getTabldotSummary();
+        const extraSummary = getExtraSummary();
+        const totalPrice = tabldotSummary.totalPrice + extraSummary.totalPrice;
+        const combinedCounts = mergeCountMaps(tabldotSummary.countMap, extraSummary.countMap);
 
-        $(".person-card").each(function(i) {
-            msg += `${i + 1}. Kişi: ${$(this).find(".p-corba").val()}, ${$(this).find(".p-ana").val()}, ${$(this).find(".p-yan").val()}, ${$(this).find(".p-ek").val()}\n`;
+        let msg = `${name}\n${addr}\n\n`;
+        msg += `Tarih: ${dateText}\n`;
+        msg += `Saat: ${timeText}\n`;
+        msg += `Tabldot Tutarı: ${tabldotSummary.totalPrice} TL\n`;
+        msg += `Ekstra Ürün Tutarı: ${extraSummary.totalPrice} TL\n`;
+        msg += `Toplam Tutar: ${totalPrice} TL\n`;
+        msg += `Genel Ürün Özeti: ${formatCountMap(combinedCounts)}\n\n`;
+
+        msg += `TABLDOT SİPARİŞ\n`;
+        tabldotSummary.details.forEach(line => {
+            msg += `${line}\n`;
         });
 
-        window.location.href = "https://wa.me/905077476114?text=" + encodeURIComponent(msg);
+        if (extraSummary.details.length > 0) {
+            msg += `\nEKSTRA TEKLİ ÜRÜNLER\n`;
+            extraSummary.details.forEach(line => {
+                msg += `${line}\n`;
+            });
+        }
+
+        window.location.href = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg);
     }
 
     $(document).ready(() => getMenu());
